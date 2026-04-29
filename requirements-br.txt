@@ -18,6 +18,7 @@ phonenumbers
 pyOpenSSL>=24.0.0
 pyyaml
 unidecode
+urllib3>=2.2.0,<3.0.0
 workalendar
 
 # Impressao de documentos fiscais. Mantido na ultima versao publicada no PyPI.
