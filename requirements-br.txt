@@ -12,6 +12,7 @@ erpbrasil.base
 erpbrasil.edoc
 erpbrasil.transmissao
 nfelib
+lxml_html_clean
 num2words
 phonenumbers
 pyyaml
