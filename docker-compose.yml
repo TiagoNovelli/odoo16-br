@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # Odoo 16 com localizacao brasileira.
   #
