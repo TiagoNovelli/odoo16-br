@@ -1,36 +1,22 @@
-# =============================================================
-# requirements-br.txt
-# Dependências Python para módulos fiscais brasileiros no Odoo 16
-# =============================================================
+# Dependencias Python para modulos brasileiros do Odoo 16.
+#
+# Baseado nas external_dependencies da branch 16.0 do OCA/l10n-brazil.
+# As bibliotecas erpbrasil sao instaladas como pacotes Python; os addons
+# Odoo continuam sendo clonados/montados em /mnt/extra-addons.
 
-# NF-e / NFS-e / CT-e
-erpbrasil.base>=2.3.0
-erpbrasil.edoc.pdf>=1.6.0
-erpbrasil.edoc.qrcode>=1.1.0
-erpbrasil.transmissao>=1.6.0
+brazilcep
+brazilfiscalreport
+email-validator
+erpbrasil.assinatura
+erpbrasil.base
+erpbrasil.edoc
+erpbrasil.transmissao
+nfelib
+num2words
+phonenumbers
+pyyaml
+unidecode
+workalendar
 
-# Boleto bancário
-brcobranca>=5.0.0
-
-# Validações de documentos BR (CPF, CNPJ, CEP...)
-python-stdnum>=1.17
-validate-docbr>=1.10.0
-
-# Geração de XML fiscal
-lxml>=4.9.0
-signxml>=3.2.0
-
-# Certificados digitais A1/A3
-pyOpenSSL>=22.0.0
-cryptography>=38.0.0
-
-# IBGE / CEP / endereço
-requests>=2.28.0
-
-# Geração de PDF (DANFE, DACTE, etc.)
-reportlab>=3.6.0
-Pillow>=9.0.0
-
-# Utilitários gerais
-python-dateutil>=2.8.2
-pytz>=2022.1
+# Impressao de documentos fiscais. Mantido na ultima versao publicada no PyPI.
+erpbrasil.edoc.pdf==1.2.1
