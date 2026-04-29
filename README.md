@@ -1,83 +1,127 @@
-# Odoo 16 — Localização Brasileira (Docker)
+# Odoo 16 BR
 
-Setup completo do Odoo 16 com módulos fiscais brasileiros via Docker Compose.
-
----
+Deploy Docker do Odoo 16 com dependencias brasileiras, preparado para rodar na VPS usando o PostgreSQL e o Traefik ja existentes.
 
 ## Estrutura
 
-```
+```text
 odoo16-br/
-├── Dockerfile                  # Imagem customizada do Odoo 16
-├── docker-compose.yml          # Orquestração dos serviços
-├── requirements-br.txt         # Dependências Python fiscais BR
-├── scripts/
-│   └── install_requirements.sh # Script de install (rodado no build)
-├── config/
-│   └── odoo.conf               # Configuração do Odoo
-└── addons/                     # Seus módulos / localização BR
+|-- Dockerfile
+|-- docker-compose.yml
+|-- requirements-br.txt
+|-- .env.example
+|-- addons/
+|-- config/
+|   `-- odoo.conf
+`-- scripts/
+    `-- install_requirements.sh
 ```
 
----
-
-## Módulos fiscais recomendados (OCA / L10n-Brazil)
-
-Clone dentro de `addons/` antes de subir:
+Na VPS, este repositorio deve ficar em:
 
 ```bash
-# Localização oficial OCA Brasil
+/var/lib/docker/volumes/sohome/odoo16-br
+```
+
+Os dados persistentes tambem ficam dentro desse diretorio:
+
+```text
+/var/lib/docker/volumes/sohome/odoo16-br/addons
+/var/lib/docker/volumes/sohome/odoo16-br/config
+/var/lib/docker/volumes/sohome/odoo16-br/logs
+/var/lib/docker/volumes/sohome/odoo16-br/odoo-data
+```
+
+## Banco e rede
+
+Este projeto nao sobe PostgreSQL. Ele usa o container PostgreSQL existente:
+
+```text
+container: odoo18-db
+rede:      odoo-net
+usuario:  odoo
+```
+
+As credenciais ficam no arquivo `.env`, que nao deve ser versionado.
+
+Exemplo:
+
+```bash
+cp .env.example .env
+nano .env
+chmod 600 .env
+```
+
+## Deploy na VPS
+
+```bash
+cd /var/lib/docker/volumes/sohome
+git clone https://github.com/TiagoNovelli/odoo16-br.git odoo16-br
+cd odoo16-br
+
+cp .env.example .env
+nano .env
+chmod 600 .env
+
+mkdir -p addons config logs odoo-data
+chown -R 101:101 logs odoo-data
+
+docker compose up -d --build
+```
+
+Para atualizar:
+
+```bash
+cd /var/lib/docker/volumes/sohome/odoo16-br
+git pull --ff-only
+docker compose up -d --build --force-recreate
+```
+
+## Addons brasileiros
+
+Clone os addons Odoo dentro de `addons/`.
+
+```bash
+cd /var/lib/docker/volumes/sohome/odoo16-br
+
 git clone --depth=1 --branch 16.0 \
   https://github.com/OCA/l10n-brazil.git addons/l10n-brazil
 
-# Módulos de NF-e / NFS-e (Engenere/Akretion)
 git clone --depth=1 --branch 16.0 \
   https://github.com/OCA/edi.git addons/edi
 ```
 
----
+As bibliotecas Python da organizacao `erpbrasil` sao instaladas no build da imagem via `requirements-br.txt`. Elas nao substituem os addons Odoo.
 
-## Como subir
+## Banco do Odoo 16
 
-```bash
-# 1. Clone os módulos BR (ver acima)
-# 2. Build e sobe tudo
-docker compose up -d --build
+O arquivo `config/odoo.conf` usa:
 
-# Acompanhar logs
-docker compose logs -f odoo
-
-# Parar
-docker compose down
+```ini
+dbfilter = ^odoo16.*$
 ```
 
-Acesse: **http://localhost:8069**
+Crie bancos para este Odoo com prefixo `odoo16`, por exemplo:
 
----
+```text
+odoo16_br
+```
 
-## Primeiro acesso
+Isso evita que o Odoo 16 tente abrir bancos de outras instalacoes, como Odoo 18.
 
-1. Crie um banco de dados na tela inicial
-2. Instale **l10n_br_base** (localização base BR)
-3. Depois instale os módulos fiscais que precisar (NF-e, Boleto, etc.)
+## Logs
 
----
+```bash
+docker logs -f odoo16_app
+tail -f /var/lib/docker/volumes/sohome/odoo16-br/logs/odoo.log
+```
 
-## Variáveis de ambiente
+## Acesso
 
-| Variável    | Padrão | Descrição              |
-|-------------|--------|------------------------|
-| `HOST`      | db     | Host do PostgreSQL     |
-| `PORT`      | 5432   | Porta do PostgreSQL    |
-| `USER`      | odoo   | Usuário do banco       |
-| `PASSWORD`  | odoo   | Senha do banco         |
+O container fica exposto apenas para a rede Docker e o Traefik existente roteia:
 
-> **Atenção:** troque `admin_passwd` em `config/odoo.conf` antes de ir para produção!
+```text
+https://crm.brainess.com.br
+```
 
----
-
-## Produção
-
-- Ative o bloco `nginx` no `docker-compose.yml`
-- Configure certificado SSL em `nginx/certs/`
-- Ajuste `workers` no `odoo.conf` conforme número de CPUs
-- Use secrets do Docker ou `.env` para senhas
+Se houver outro Odoo usando o mesmo host no Traefik, ajuste as labels `traefik.http.routers.*.rule` no `docker-compose.yml`.
