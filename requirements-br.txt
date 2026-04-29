@@ -15,6 +15,7 @@ nfelib
 lxml_html_clean
 num2words
 phonenumbers
+pyOpenSSL
 pyyaml
 unidecode
 workalendar
