@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libffi-dev \
     libjpeg-dev \
-    libpq-dev \
     python3-dev \
     python3-pip \
     && apt-get clean \
