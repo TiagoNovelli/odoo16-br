@@ -1,0 +1,37 @@
+# =============================================================
+# requirements-br.txt
+# Dependências Python para módulos fiscais brasileiros no Odoo 16
+# =============================================================
+
+# NF-e / NFS-e / CT-e
+erpbrasil.base>=2.3.0
+erpbrasil.base.fiscal>=1.7.0
+erpbrasil.edoc.pdf>=1.6.0
+erpbrasil.edoc.qrcode>=1.1.0
+erpbrasil.transmissao>=1.6.0
+
+# Boleto bancário
+brcobranca>=5.0.0
+
+# Validações de documentos BR (CPF, CNPJ, CEP...)
+python-stdnum>=1.17
+validate-docbr>=1.10.0
+
+# Geração de XML fiscal
+lxml>=4.9.0
+signxml>=3.2.0
+
+# Certificados digitais A1/A3
+pyOpenSSL>=22.0.0
+cryptography>=38.0.0
+
+# IBGE / CEP / endereço
+requests>=2.28.0
+
+# Geração de PDF (DANFE, DACTE, etc.)
+reportlab>=3.6.0
+Pillow>=9.0.0
+
+# Utilitários gerais
+python-dateutil>=2.8.2
+pytz>=2022.1

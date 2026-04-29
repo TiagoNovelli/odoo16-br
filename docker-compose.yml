@@ -1,0 +1,68 @@
+version: "3.8"
+
+services:
+  # Odoo 16 com localizacao brasileira.
+  #
+  # Este compose foi pensado para rodar clonado em:
+  # /var/lib/docker/volumes/sohome/odoo16-br
+  #
+  # O PostgreSQL e o Traefik ja existem na VPS. Por isso este projeto
+  # sobe somente o container do Odoo e se conecta na rede Docker externa.
+  odoo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: odoo16_app
+    restart: unless-stopped
+    expose:
+      - "8069"
+      - "8072"
+    environment:
+      HOST: ${ODOO_DB_HOST:-odoo18-db}
+      PORT: ${ODOO_DB_PORT:-5432}
+      USER: ${ODOO_DB_USER:-odoo}
+      PASSWORD: ${ODOO_DB_PASSWORD:?Defina ODOO_DB_PASSWORD no arquivo .env}
+    volumes:
+      - /var/lib/docker/volumes/sohome/odoo16-br/odoo-data:/var/lib/odoo
+      - /var/lib/docker/volumes/sohome/odoo16-br/addons:/mnt/extra-addons
+      - /var/lib/docker/volumes/sohome/odoo16-br/config/odoo.conf:/etc/odoo/odoo.conf:ro
+      - /var/lib/docker/volumes/sohome/odoo16-br/logs:/var/log/odoo
+    networks:
+      - odoo-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=odoo-net"
+
+      # Rota principal do Odoo.
+      - "traefik.http.routers.odoo16.rule=Host(`crm.brainess.com.br`)"
+      - "traefik.http.routers.odoo16.entrypoints=websecure"
+      - "traefik.http.routers.odoo16.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.odoo16.service=odoo16-web"
+      - "traefik.http.services.odoo16-web.loadbalancer.server.port=8069"
+
+      # Sticky session para Odoo com workers.
+      - "traefik.http.services.odoo16-web.loadbalancer.sticky.cookie=true"
+      - "traefik.http.services.odoo16-web.loadbalancer.sticky.cookie.name=odoo16_session"
+      - "traefik.http.services.odoo16-web.loadbalancer.sticky.cookie.secure=true"
+      - "traefik.http.services.odoo16-web.loadbalancer.sticky.cookie.httpOnly=true"
+
+      # Longpolling / websocket.
+      - "traefik.http.routers.odoo16-longpoll.rule=Host(`crm.brainess.com.br`) && PathPrefix(`/websocket`, `/longpolling`)"
+      - "traefik.http.routers.odoo16-longpoll.entrypoints=websecure"
+      - "traefik.http.routers.odoo16-longpoll.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.odoo16-longpoll.service=odoo16-longpoll"
+      - "traefik.http.services.odoo16-longpoll.loadbalancer.server.port=8072"
+
+      # Headers de proxy reverso.
+      - "traefik.http.middlewares.odoo16-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.odoo16-headers.headers.customrequestheaders.X-Forwarded-Host=crm.brainess.com.br"
+      - "traefik.http.middlewares.odoo16-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.odoo16-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.odoo16-headers.headers.forceSTSHeader=true"
+      - "traefik.http.routers.odoo16.middlewares=odoo16-headers"
+      - "traefik.http.routers.odoo16-longpoll.middlewares=odoo16-headers"
+
+networks:
+  odoo-net:
+    external: true
+    name: odoo-net
